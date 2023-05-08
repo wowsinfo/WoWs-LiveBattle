@@ -13,11 +13,18 @@ My ID is `671163302 (280123A6)` the this battle, ship ID is `575442 (08C7D2)`, d
     - My monitor is 100 Hz so it is updating every 5 frames
 - The offset between my team and enemy team is consistent which is 26 (1A)
     - Team Score 406 - 913
-        - Line 55F9ED, we have 9601 which is my team score
-        - Line 55FA07, we have 9103 which is enemy team score
-        - Line 55F901 & 55FB85, my ship ID
-        - Line 55F9AB & 55F972, ship who sunk me ID
-        - Line 55F993, 12 which is death type
+        - 0x55F9ED, we have 9601 which is my team score
+        - 0x55FA07, we have 9103 which is enemy team score
+        - 0x55F901 & 0x55FB85, my ship ID
+        - 0x55F9AB & 0x55F972, ship who sunk me ID
+        - 0x55F993, 12 which is death type
     - Team Score 453 - 872
-        - Line 559D96, we have C501 which is my team score
-        - Line 559DB0, we have 6803 which is enemy team score
+        - 0x559D96, we have C501 which is my team score
+        - 0x559DB0, we have 6803 which is enemy team score
+- Damage received 479, 877
+    - 0x50D6CC, 6D03 which is 877
+    - 0x507881, DF01 which is 479
+        - 479 can be dealt by me
+        - 0x5078A2, my ship id
+- My ship ID may be related to number of guns I have, the ship has 6 guns so the ID is from 575437 to 575442
+    - However, just my guess
