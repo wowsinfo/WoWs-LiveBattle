@@ -7,3 +7,8 @@ Data is in 4kb chunk, let's see how this goes
         - 0C can be the size of this block?
 - Satsuma is 439920, my ID is 439919
     - 0x1CE6B5 and 0x1CE738
+- 00 A4 F6 90, this one is our team score update
+    - F6 90 xx xx this is our team score
+    - F6 D0 xx xx this is enemy team score
+- The full message is 43 6B B6 06 00 00 05 00 00 00 A4 xx xx xx xx
+    

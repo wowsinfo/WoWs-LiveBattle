@@ -36,8 +36,15 @@ My ID is `671163302 (280123A6)` the this battle, ship ID is `575442 (08C7D2)`, d
     - 4 bytes death type
 - Chat event 80 00 00 00 XX 00 00 00
     - unknown 4 bytes
-    - 1 byte chat type 
-    - chat type (team or common)
+    - 1 byte chat type
+        - 0B battle team
+        - 0D battle common
+    - battle_team / battle_common (this is just a string)
     - 1 byte message length
     - message
     - 1 byte null terminator
+- Team score event 0E 00 00 00 22 00 00 00
+    - unknown 7 bytes
+    - 08 00 00 05 00 00 00 A4
+    - 2 bytes (F6 90 [Our Team] or F6 D0 [Enemy Team])
+    - 2 bytes score
