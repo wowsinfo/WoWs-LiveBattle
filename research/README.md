@@ -30,6 +30,7 @@ My ID is `671163302 (280123A6)` the this battle, ship ID is `575442 (08C7D2)`, d
     - However, just my guess
 
 # Events
+- 31 00 00 00 08 00 00 00, the beginning of all events
 - Kill event 4B 00 00 00 0C 00 00 00
     - 4 bytes killer ID
     - 4 bytes killed ID
@@ -48,3 +49,19 @@ My ID is `671163302 (280123A6)` the this battle, ship ID is `575442 (08C7D2)`, d
     - 08 00 00 05 00 00 00 A4
     - 2 bytes (F6 90 [Our Team] or F6 D0 [Enemy Team])
     - 2 bytes score
+- Damage event (this one can be very complicated)
+    - 6B 00 00 00 21 00 00 00, the damage and receiver
+        - 4 bytes, weapon ID?
+        - 8 unknown bytes
+        - 4 bytes, damage receiver ID
+        - 4 bytes, damage amount
+        - 13 unknown bytes
+    - 20 00 00 00 2B 00 00 00, the damage dealer if ID is valid?
+        - 4 unknown bytes
+        - 4 bytes, damage dealer ID
+        - 28 unknown bytes
+        - This event has shorter length than expected
+        - NOTE: 20 can also be position, since the enemy never moved
+    - 0E 00 00 00 07 00 00 00, the damage dealer if ID is valid?
+        - 4 unknown bytes
+        - 4 bytes, damage dealer ID
