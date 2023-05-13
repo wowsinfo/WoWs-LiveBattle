@@ -57,6 +57,12 @@ def parse_events(data: memoryview):
                     print('Private: {}'.format(message))
                 else:
                     print('Public: {}'.format(message))
+        elif event_type == 0x6B and size == 0x21:
+            weapon_id = struct.unpack("I", payload[0:4])[0]
+            receiver_id = struct.unpack("I", payload[12:16])[0]
+            damage = struct.unpack("I", payload[16:20])[0]
+            if damage > 0:
+                print('Receiver: {}, Damage: {} \t Weapon?: {}'.format(receiver_id, damage, weapon_id))
 
         # the actual data size can be smaller than the size in the header, let's seek only half of the size
         data = data[int(size/2):]
