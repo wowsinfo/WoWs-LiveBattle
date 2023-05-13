@@ -6,12 +6,11 @@ import sys
 import os
 import struct
 
-def parse_events(data):
+def parse_events(data: memoryview):
     """
     Events are in format like XX (type) 00 00 00 XX (size) 00 00 00 Data Bytes,
     Sometimes, the actual data size is smaller than the size in the header.
     """
-    data = memoryview(data)
     while len(data) > 4:
         # combine 4 bytes into an integer
         event_type = struct.unpack("I", data[0:4])[0]
@@ -34,11 +33,18 @@ def parse_events(data):
             death_type = struct.unpack("I", payload[8:12])[0]
             print('Killer: {}, Victim: {}, Death Type: {}'.format(killer_id, victim_id, death_type))
         elif event_type == 0x0E and size == 0x22:
-            # team score, 2 bytes
-            team_type = struct.unpack("H", payload[14:16])[0]
-            team = 'My Team' if team_type == 0x90F6 else 'Enemy Team'
-            team_score = struct.unpack("H", payload[16:18])[0]
-            print('{}: {}'.format(team, team_score))
+            # make sure this is 08 00 00 05 00 00 00 A4
+            if  payload[6:14] == b'\x08\x00\x00\x05\x00\x00\x00\xA4':
+                # team score, 2 bytes
+                team_type = struct.unpack("H", payload[14:16])[0]
+                team = 'My Team' if team_type == 0x90F6 else 'Enemy Team'
+                team_score = struct.unpack("H", payload[16:18])[0]
+                if team_score == 1:
+                    # dump out to byte string
+                    print('=== Start')
+                    print(payload.hex().upper())
+                    print('=== End')
+                print('{}: {}'.format(team, team_score))
         elif event_type == 0x80:
             # check if we have "battle" in the payload
             raw_chat = bytes(payload).decode('utf-8', errors='ignore')
@@ -52,6 +58,8 @@ def parse_events(data):
                 else:
                     print('Public: {}'.format(message))
 
+        # the actual data size can be smaller than the size in the header, let's seek only half of the size
+        data = data[int(size/2):]
     print('=== End')
 
 def parse_header():
@@ -63,6 +71,7 @@ def stream_wowsreplay(path: str):
     """
     with open(path, "rb") as replay:
         content = replay.read()
+    content = memoryview(content)
     
     # TODO: for now let's skip until we find 31 00 00 00 08 00 00 00
     for i in range(len(content)):
