@@ -190,6 +190,8 @@ Private State: {battleItems: [], triggers: None, diplomacyTickets: None, levelin
 2023-05-10 21:31:27.910: ERROR: [Script] [UserDataGate] Invalid data; (, 80067621657176, 312)
 2023-05-10 21:31:27.910: ERROR: [Script] [UserDataGate] Invalid data; (, 80067621657176, 312)
 2023-05-10 21:31:27.910: ERROR: [Script] [UserDataGate] Invalid data; (, 80067621657176, 312)
+
+
 2023-05-10 21:31:27.910: INFO: [Script] [Avatar] Avatar.receiveAvatarInfo:, ({'evaluationsLeft': {0: 12, 1: 12}},); (, 10355579432072, 30)
 2023-05-10 21:31:27.910: INFO: [Script] [ShutDownCommon] ShutDownCommon.onShutdownTime:, (0, 0, 0, 'PlayerAvatar'); (, 75596284726682, 138)
 2023-05-10 21:31:27.910: INFO: [Script] [team id] 0; (, 1166342594655, 759)
@@ -225,9 +227,6 @@ Private State: {battleItems: [], triggers: None, diplomacyTickets: None, levelin
 2023-05-10 21:31:28.545: INFO: [Script] [team id] 0; (, 1168145454956, 1285)
 2023-05-10 21:31:28.560: INFO: [Script] [Avatar] ! A.onFirstVehicleBoard; (, 513906572948, 588)
 2023-05-10 21:31:28.602: INFO: [Script] [NavigationCommon] 439919; createNavigationMap, ('', 'PJSD210_Harugumo', 'graph sides: 16', 'cellSize: 6.15', 'speed: 3.37', 'acceleration: 0.51', 'back speed: 1.31', 'backward acceleration: 0.25', 'side speed: 2.67', 'rudder time: 1.64', 'depths: []', 'underwaterHeight: -0.310157775879', 'unpassable cells count: 0', 'total cells count: 38025', 'spaceID: 5449'); (, 73835711200882, 228)
-
----
-
 2023-05-10 21:31:28.602: INFO: [Script] [BattleReplay] current battle arena info: {"matchGroup": "pvp", "gameMode": 7, "clientVersionFromExe": "12,3,1,6965290", "scenarioUiCategoryId": 0, "eventType": "", "mapDisplayName": "00_CO_ocean", "mapId": 0, "clientVersionFromXml": "12,3,1,6965290", "weatherParams": {"0": ["PCOW003_Cloudy"], "1": ["PCOW003_Cloudy", "PCOW002_Storm"]}, "disabledShipClasses": [], "playersPerTeam": 12, "duration": 1800, "name": "12x12", "scenario": "Domination_3point", "playerID": 0, "vehicles": [{"shipId": 4074682192, "relation": 2, "id": 537407137, "name": "JustOneSummer"}, {"shipId": 4074649296, "relation": 0, "id": 671301412, "name": "HenryQuan"}, {"shipId": 4178523856, "relation": 2, "id": 268369922, "name": ":Riccardi:"}, {"shipId": 4293834736, "relation": 1, "id": 268369923, "name": ":Krabbe:"}, {"shipId": 4293834736, "relation": 1, "id": 268369924, "name": ":Nakhimov:"}], "gameType": "TrainingBattle", "dateTime": "10.05.2023 21:31:28", "mapName": "spaces/00_CO_ocean", "playerName": "HenryQuan", "scenarioConfigId": 1, "teamsCount": 2, "playerVehicle": "PJSD210-Harugumo", "battleDuration": 1200, "mapBorder": null}; (, 5526725652290, 1003)
 2023-05-10 21:31:28.603: INFO: [Script] [BattleDataContext] __onFirstVehicleBoard; (, 34646147650797, 12)
 2023-05-10 21:31:28.603: INFO: [Script] [BattleDataContext] __initBattleSystems; (, 46418556520391, 12)

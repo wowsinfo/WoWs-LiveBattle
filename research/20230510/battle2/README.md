@@ -11,4 +11,5 @@ Data is in 4kb chunk, let's see how this goes
     - F6 90 xx xx this is our team score
     - F6 D0 xx xx this is enemy team score
 - The full message is 43 6B B6 06 00 00 05 00 00 00 A4 xx xx xx xx
-    
+= 439915 is battle logic, 6B B6 06
+- 2A 91 B1 43, fire damage? NO

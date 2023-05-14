@@ -4,6 +4,7 @@ Read temp.wowsreplay, parse it, and print the result while streaming.
 
 import sys
 import os
+import time
 import struct
 
 def parse_events(data: memoryview):
@@ -11,6 +12,8 @@ def parse_events(data: memoryview):
     Events are in format like XX (type) 00 00 00 XX (size) 00 00 00 Data Bytes,
     Sometimes, the actual data size is smaller than the size in the header.
     """
+
+    total_damage = 0
     while len(data) > 4:
         # combine 4 bytes into an integer
         event_type = struct.unpack("I", data[0:4])[0]
@@ -33,18 +36,15 @@ def parse_events(data: memoryview):
             death_type = struct.unpack("I", payload[8:12])[0]
             print('Killer: {}, Victim: {}, Death Type: {}'.format(killer_id, victim_id, death_type))
         elif event_type == 0x0E and size == 0x22:
-            # make sure this is 08 00 00 05 00 00 00 A4
-            if  payload[6:14] == b'\x08\x00\x00\x05\x00\x00\x00\xA4':
-                # team score, 2 bytes
-                team_type = struct.unpack("H", payload[14:16])[0]
-                team = 'My Team' if team_type == 0x90F6 else 'Enemy Team'
+            battle_logic_id = struct.unpack("I", payload[4:8])[0]
+            # make sure this is 00 05 00 00 00 A4 F6
+            if  payload[8:15] == b'\x00\x05\x00\x00\x00\xA4\xF6':
+                # team byte
+                team_type = payload[15]
+                team = 'My Team' if team_type == 0x90 else 'Enemy Team'
+                # team score 2 bytes
                 team_score = struct.unpack("H", payload[16:18])[0]
-                if team_score == 1:
-                    # dump out to byte string
-                    print('=== Start')
-                    print(payload.hex().upper())
-                    print('=== End')
-                print('{}: {}'.format(team, team_score))
+                print('BattleLogic: {}\t{}:\t{}'.format(battle_logic_id, team, team_score))
         elif event_type == 0x80:
             # check if we have "battle" in the payload
             raw_chat = bytes(payload).decode('utf-8', errors='ignore')
@@ -57,16 +57,17 @@ def parse_events(data: memoryview):
                     print('Private: {}'.format(message))
                 else:
                     print('Public: {}'.format(message))
-        elif event_type == 0x6B and size == 0x21:
+        elif event_type == 0x6B:
             weapon_id = struct.unpack("I", payload[0:4])[0]
             receiver_id = struct.unpack("I", payload[12:16])[0]
             damage = struct.unpack("I", payload[16:20])[0]
+            total_damage += damage
             if damage > 0:
                 print('Receiver: {}, Damage: {} \t Weapon?: {}'.format(receiver_id, damage, weapon_id))
 
         # the actual data size can be smaller than the size in the header, let's seek only half of the size
         data = data[int(size/2):]
-    print('=== End')
+    print('=== End, total damage: {} ==='.format(total_damage))
 
 def parse_header():
     pass
@@ -99,3 +100,31 @@ if __name__ == '__main__':
         print('File not found: {}'.format(path))
         sys.exit(1)
     stream_wowsreplay(path)
+
+    # stream
+    # with open(path, 'rb') as f:
+    #     # Get the initial file size and modification time
+    #     stat_info = os.stat(path)
+    #     last_size = stat_info.st_size
+    #     last_modified = stat_info.st_mtime
+
+    #     while True:
+    #         # Wait for a short time
+    #         time.sleep(0.1)
+
+    #         # Get the current file size and modification time
+    #         stat_info = os.stat(path)
+    #         current_size = stat_info.st_size
+    #         current_modified = stat_info.st_mtime
+
+    #         # Check if the file has been modified
+    #         if current_size != last_size or current_modified != last_modified:
+    #             print('File has been modified!')
+    #             # Do something with the file here
+    #             f.seek(last_size)
+    #             new_data = f.read(current_size - last_size)
+    #             print(new_data)
+
+    #         # Update the last size and modification time
+    #         last_size = current_size
+    #         last_modified = current_modified

@@ -45,23 +45,38 @@ My ID is `671163302 (280123A6)` the this battle, ship ID is `575442 (08C7D2)`, d
     - message
     - 1 byte null terminator
 - Team score event 0E 00 00 00 22 00 00 00
-    - unknown 7 bytes
-    - 08 00 00 05 00 00 00 A4
-    - 2 bytes (F6 90 [Our Team] or F6 D0 [Enemy Team])
+    - unknown 4 bytes
+    - 4 bytes battle logic ID
+    - 00 05 00 00 00 A4 F6
+    - 1 byte (90 [Our Team] or D0 [Enemy Team])
     - 2 bytes score
 - Damage event (this one can be very complicated)
     - 6B 00 00 00 21 00 00 00, the damage and receiver
         - 4 bytes, weapon ID?
-        - 8 unknown bytes
+        - 4 bytes, 00 00 00 00
+        - 4 bytes, shot ID?
         - 4 bytes, damage receiver ID
         - 4 bytes, damage amount
         - 13 unknown bytes
-    - 20 00 00 00 2B 00 00 00, the damage dealer if ID is valid?
-        - 4 unknown bytes
-        - 4 bytes, damage dealer ID
-        - 28 unknown bytes
-        - This event has shorter length than expected
-        - NOTE: 20 can also be position, since the enemy never moved
     - 0E 00 00 00 07 00 00 00, the damage dealer if ID is valid?
         - 4 unknown bytes
         - 4 bytes, damage dealer ID
+- Main battery shot 6C 00 00 00 6E 00 00 00
+    - 1 byte, 01
+    - 4 bytes, weapon ID?
+    - 4 bytes, attacker ID
+    - rest unknown bytes
+- Torpedo shot 6D 00 00 00 2F 00 00 00
+    - 1 byte, 01
+    - 4 bytes, weapon ID?
+    - 4 bytes, attacker ID
+    - rest unknown bytes
+- ??? 6E 00 00 00
+- 20 00 00 00 2B 00 00 00 position? unsure yet
+    - 4 unknown bytes
+    - 4 bytes, damage dealer ID
+    - 28 unknown bytes
+    - This event has shorter length than expected
+    - NOTE: 20 can also be position, since the enemy never moved
+    - The enemy ship is never moved, but my ship was also not moving sometimes, what is this?
+- 0E 00 00 00 XX 00 00 00, this seems important as well
