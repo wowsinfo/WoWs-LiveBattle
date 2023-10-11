@@ -764,6 +764,27 @@ impl<'argtype> Parser<'argtype> {
         }
         Ok(())
     }
+
+    pub fn parse_live_packets<'a, 'b, P: PacketProcessor>(
+        &'b mut self,
+        i: &'a [u8],
+        p: &mut P,
+    ) -> usize {
+        // count valid bytes
+        let mut counter = 0;
+        let mut i = i;
+        while i.len() > 0 {
+            match self.parse_packet(i) {
+                Ok((remaining, packet)) => {
+                    counter += i.len() - remaining.len();
+                    i = remaining;
+                    p.process(packet);
+                },
+                Err(_) => break,
+            }
+        }
+        return counter;
+    }
 }
 
 pub trait PacketProcessor {

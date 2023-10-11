@@ -1,4 +1,9 @@
-use std::{fs::{read_to_string, File}, io::Read, thread::sleep, time::Duration};
+use std::{
+    fs::{read_to_string, File},
+    io::{Read, Seek},
+    thread::sleep,
+    time::Duration,
+};
 use wows_replays::{parse_scripts, ErrorKind, ReplayMeta};
 
 pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
@@ -35,18 +40,29 @@ pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
 
     // Keep reading the replay file and sending packets to the analyzer
     let mut temp_replay = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
-    let mut buffer = [0; 256];
+    const BUFFER_SIZE: usize = 256;
+    let mut buffer = [0; BUFFER_SIZE];
+    let mut offset = 0;
     loop {
-        let bytes_read = temp_replay
-            .read(&mut buffer)
-            .map_err(|_| ErrorKind::TempFilesNotFound)?;
+        let bytes_to_read = BUFFER_SIZE - offset;
+        temp_replay
+            .read_exact(&mut buffer[offset..bytes_to_read])
+            .map_err(|_| ErrorKind::IncorrectTempReplayFileRead)?;
+
+        let bytes_read = bytes_to_read - offset;
         if bytes_read == 0 {
             continue;
         }
 
-        match p.parse_packets::<wows_replays::analyzer::AnalyzerAdapter>(&buffer[..bytes_read], &mut analyzer_set) {
-            Ok(()) => {}
-            Err(e) => return Err(e),
+        offset = p.parse_live_packets::<wows_replays::analyzer::AnalyzerAdapter>(
+            &buffer[..bytes_read],
+            &mut analyzer_set,
+        );
+
+        // shift remaining bytes to the beginning of the buffer
+        buffer.copy_within(offset..BUFFER_SIZE, 0);
+        if offset > 0 {
+            offset = BUFFER_SIZE - offset;
         }
 
         // short delay

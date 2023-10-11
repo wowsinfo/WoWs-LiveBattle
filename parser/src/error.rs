@@ -67,6 +67,8 @@ pub enum ErrorKind {
     InvalidArenaJson,
     #[error("Temporary files are not found")]
     TempFilesNotFound,
+    #[error("Temporary replay file is not read correctly")]
+    IncorrectTempReplayFileRead,
 }
 
 impl nom::error::ParseError<&[u8]> for Error {
