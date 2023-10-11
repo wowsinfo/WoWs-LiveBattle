@@ -8,7 +8,7 @@ fn main() {
 
     let input = r"C:\Games\World_of_Warships\replays\20231007_212140_PBSC110-Minotaur_38_Canada.wowsreplay";
     let input = &PathBuf::from(input);
-    let dump = DecoderBuilder::new(
+    let dump: DecoderBuilder = DecoderBuilder::new(
         false,
         true,
         Some("a.json"),

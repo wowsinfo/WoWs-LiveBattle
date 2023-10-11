@@ -967,13 +967,16 @@ where
                 updates,
                 arg1: args1,
             }
-        } else if *method == "onBattleEnd" {
-            let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
-            DecodedPacketPayload::BattleEnd {
-                winning_team,
-                unknown,
-            }
-        } else if *method == "consumableUsed" {
+        }
+        // This has became a property now
+        // else if *method == "onBattleEnd" {
+        //     let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
+        //     DecodedPacketPayload::BattleEnd {
+        //         winning_team,
+        //         unknown,
+        //     }
+        // } 
+        else if *method == "consumableUsed" {
             let (consumable, duration) = unpack_rpc_args!(args, i8, f32);
             let raw_consumable = consumable;
             let consumable = match consumable {
