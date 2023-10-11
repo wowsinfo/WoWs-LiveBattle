@@ -1,6 +1,5 @@
 use crate::error::ErrorKind;
-use rust_embed::RustEmbed;
-use serde::Serialize;
+use serde_derive::Serialize;
 use std::borrow::Cow;
 use std::path::PathBuf;
 
@@ -45,10 +44,6 @@ impl Version {
     }
 }
 
-#[derive(RustEmbed)]
-#[folder = "../versions/"]
-struct Embedded;
-
 pub struct Datafiles {
     base_path: PathBuf,
     version: Version,
@@ -58,15 +53,10 @@ impl Datafiles {
     pub fn new(base: PathBuf, version: Version) -> Result<Datafiles, ErrorKind> {
         let mut p = base.clone();
         p.push(version.to_path());
-        // TODO: Also check the Embedded struct for if this path exists
-        /*if !p.exists() {
-            Err(ErrorKind::UnsupportedReplayVersion(version.to_path()))
-        } else {*/
         Ok(Datafiles {
             base_path: base,
             version,
         })
-        //}
     }
 
     pub fn get(&self, path: &str) -> Result<Cow<'static, [u8]>, ErrorKind> {
@@ -74,10 +64,6 @@ impl Datafiles {
         p.push(self.version.to_path());
         p.push(path);
         if !p.exists() {
-            let p = format!("{}/{}", self.version.to_path(), path);
-            if let Some(x) = Embedded::get(&p) {
-                return Ok(x.data);
-            }
             return Err(ErrorKind::DatafileNotFound {
                 version: self.version,
                 path: path.to_string(),

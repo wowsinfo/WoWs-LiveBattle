@@ -60,7 +60,7 @@ impl Analyzer for ChatLogger {
             DecodedPacketPayload::OnArenaStateReceived { players, .. } => {
                 for player in players.iter() {
                     self.usernames
-                        .insert(player.avatarId.try_into().unwrap(), player.name.clone());
+                        .insert(player.avatar_id.try_into().unwrap(), player.name.clone());
                 }
             }
             _ => {}

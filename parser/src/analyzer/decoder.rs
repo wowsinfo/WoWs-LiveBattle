@@ -123,18 +123,18 @@ pub struct OnArenaStateReceivedPlayer {
     /// The name of this player
     pub name: String,
     /// The player's clanTag
-    pub clanTag: String,
+    pub clan_tag: String,
     /// Their avatar ID in the game
-    pub avatarId: i64,
+    pub avatar_id: i64,
     /// Their ship ID in the game
-    pub shipId: i64,
+    pub ship_id: i64,
     /// Unknown
-    pub shipParamsId: i64,
+    pub ship_params_id: i64,
     //skinId: i64,
     /// Which teamId they're on.
     pub teamid: i64,
     /// Their starting maxHealth
-    pub maxHealth: i64,
+    pub max_health: i64,
 
     /// This is a raw dump (with the values converted to strings) of every key for the player.
     // TODO: Replace String with the actual pickle value (which is cleanly serializable)
@@ -697,62 +697,6 @@ where
                         }
                     }
 
-                    let keys: HashMap<&'static str, i64> = if version
-                        .is_at_least(&crate::version::Version::from_client_exe("12,6,0,0"))
-                    {
-                        // 12.6.0 new mappings
-                        let mut h = HashMap::new();
-                        h.insert("avatarId", 2);
-                        h.insert("clanTag", 6);
-                        h.insert("maxHealth", 23);
-                        h.insert("name", 24);
-                        h.insert("shipId", 32);
-                        h.insert("shipParamsId", 33);
-                        h.insert("skinId", 34);
-                        h.insert("teamId", 35);
-                        h
-                    } else if version
-                        .is_at_least(&crate::version::Version::from_client_exe("0,10,7,0"))
-                    {
-                        // 0.10.9 inserted things at 0x1 and 0x1F
-                        let mut h = HashMap::new();
-                        h.insert("avatarId", 2);
-                        h.insert("clanTag", 6);
-                        h.insert("maxHealth", 23);
-                        h.insert("name", 24);
-                        h.insert("shipId", 32);
-                        h.insert("shipParamsId", 33);
-                        h.insert("skinId", 34);
-                        h.insert("teamId", 35);
-                        h
-                    } else if version
-                        .is_at_least(&crate::version::Version::from_client_exe("0,10,7,0"))
-                    {
-                        // 0.10.7
-                        let mut h = HashMap::new();
-                        h.insert("avatarId", 0x1);
-                        h.insert("clanTag", 0x5);
-                        h.insert("maxHealth", 0x16);
-                        h.insert("name", 0x17);
-                        h.insert("shipId", 0x1e);
-                        h.insert("shipParamsId", 0x1f);
-                        h.insert("skinId", 0x20);
-                        h.insert("teamId", 0x21);
-                        h
-                    } else {
-                        // 0.10.6 and earlier
-                        let mut h = HashMap::new();
-                        h.insert("avatarId", 0x1);
-                        h.insert("clanTag", 0x5);
-                        h.insert("maxHealth", 0x15);
-                        h.insert("name", 0x16);
-                        h.insert("shipId", 0x1d);
-                        h.insert("shipParamsId", 0x1e);
-                        h.insert("skinId", 0x1f);
-                        h.insert("teamId", 0x20);
-                        h
-                    };
-
                     /*
                     1: Player ID
                     5: Clan name
@@ -770,20 +714,20 @@ where
                             panic!("{:?}", name);
                         }
                     };
-                    let clanTag = values.get(&ReplayPlayerProperty::ClanTag.into()).unwrap();
-                    let clanTag = match clanTag {
+                    let clan_tag = values.get(&ReplayPlayerProperty::ClanTag.into()).unwrap();
+                    let clan_tag = match clan_tag {
                         serde_pickle::value::Value::String(s) => s.clone(),
                         _ => {
-                            panic!("{:?}", clanTag);
+                            panic!("{:?}", clan_tag);
                         }
                     };
-                    let shipId = values.get(&ReplayPlayerProperty::ShipId.into()).unwrap();
-                    let shipParamsId = values
+                    let ship_id = values.get(&ReplayPlayerProperty::ShipId.into()).unwrap();
+                    let ship_params_id = values
                         .get(&ReplayPlayerProperty::ShipParamsId.into())
                         .unwrap();
                     let _playeravatarid = values.get(&ReplayPlayerProperty::SkinId.into()).unwrap();
-                    let teamId = values.get(&ReplayPlayerProperty::TeamId.into()).unwrap();
-                    let maxHealth = values.get(&ReplayPlayerProperty::MaxHealth.into()).unwrap();
+                    let team_id = values.get(&ReplayPlayerProperty::TeamId.into()).unwrap();
+                    let max_health = values.get(&ReplayPlayerProperty::MaxHealth.into()).unwrap();
 
                     let mut raw = HashMap::new();
                     for (k, v) in values.iter() {
@@ -791,24 +735,24 @@ where
                     }
                     players_out.push(OnArenaStateReceivedPlayer {
                         name: name.to_string(),
-                        clanTag: clanTag.to_string(),
-                        avatarId: match avatar {
+                        clan_tag: clan_tag.to_string(),
+                        avatar_id: match avatar {
                             serde_pickle::value::Value::I64(i) => *i,
                             _ => panic!("foo"),
                         },
-                        shipId: match shipId {
+                        ship_id: match ship_id {
                             serde_pickle::value::Value::I64(i) => *i,
                             _ => panic!("foo"),
                         },
-                        shipParamsId: match shipParamsId {
+                        ship_params_id: match ship_params_id {
                             serde_pickle::value::Value::I64(i) => *i,
                             _ => panic!("foo"),
                         },
-                        teamid: match teamId {
+                        teamid: match team_id {
                             serde_pickle::value::Value::I64(i) => *i,
                             _ => panic!("foo"),
                         },
-                        maxHealth: match maxHealth {
+                        max_health: match max_health {
                             serde_pickle::value::Value::I64(i) => *i,
                             _ => panic!("foo"),
                         },

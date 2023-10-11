@@ -1,4 +1,5 @@
 /// The latest property mapping for 12.8.0
+#[allow(dead_code)]
 pub enum ReplayPlayerProperty {
     AccountId = 0,
     AntiAbuseEnabled = 1,
