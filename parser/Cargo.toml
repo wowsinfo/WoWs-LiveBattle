@@ -1,0 +1,22 @@
+[package]
+name = "wows-replays"
+version = "0.1.0"
+authors = ["Lane Kolbly <lane@rscheme.org>", "HenryQuan <development.henryquan@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nom = "7.0.0"
+hexdump = "0.1.0"
+flate2 = "1.0.14"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+thiserror = "1.0.19"
+rust-crypto = "0.2.36"
+roxmltree = "0.14.1"
+serde-pickle = "1.0.0"
+rust-embed = "6.0.0"
+modular-bitfield = "0.11.2"
+bitreader = "0.3.4"
