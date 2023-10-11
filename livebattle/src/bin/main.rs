@@ -14,5 +14,9 @@ fn main() {
         Some("a.json"),
     );
 
-    parse_replay(input, dump);
+    let result = parse_replay(input, dump);
+    match result {
+        Ok(_) => println!("ok"),
+        Err(e) => println!("error: {:?}", e),
+    }
 }

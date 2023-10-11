@@ -967,16 +967,16 @@ where
                 updates,
                 arg1: args1,
             }
-        }
-        // This has became a property now
-        // else if *method == "onBattleEnd" {
-        //     let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
-        //     DecodedPacketPayload::BattleEnd {
-        //         winning_team,
-        //         unknown,
-        //     }
-        // } 
-        else if *method == "consumableUsed" {
+        } else if *method == "onBattleEnd" {
+            // This has became a property now
+            DecodedPacketPayload::Unknown(&[0])
+
+            // let (winning_team, unknown) = unpack_rpc_args!(args, i8, u8);
+            // DecodedPacketPayload::BattleEnd {
+            //     winning_team,
+            //     unknown,
+            // }
+        } else if *method == "consumableUsed" {
             let (consumable, duration) = unpack_rpc_args!(args, i8, f32);
             let raw_consumable = consumable;
             let consumable = match consumable {
@@ -1084,7 +1084,14 @@ impl Analyzer for Decoder {
         let decoded = DecodedPacket::from(&self.version, false, packet);
         //println!("{:#?}", decoded);
         //println!("{}", serde_json::to_string_pretty(&decoded).unwrap());
-        let encoded = serde_json::to_string(&decoded).unwrap();
-        self.write(&encoded);
+        match decoded.payload {
+            DecodedPacketPayload::Unknown(_) => {
+                return; // ignore unknown packets
+            },
+            _ => {
+                let encoded = serde_json::to_string(&decoded).unwrap();
+                self.write(&encoded);
+            }
+        }
     }
 }
