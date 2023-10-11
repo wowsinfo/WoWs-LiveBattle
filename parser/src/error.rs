@@ -63,6 +63,10 @@ pub enum ErrorKind {
     InvalidBlowfishBlockSize,
     #[error("Invalid zlib header")]
     InvalidZlibHeader,
+    #[error("Invalid Arena Json")]
+    InvalidArenaJson,
+    #[error("Temporary files are not found")]
+    TempFilesNotFound,
 }
 
 impl nom::error::ParseError<&[u8]> for Error {
