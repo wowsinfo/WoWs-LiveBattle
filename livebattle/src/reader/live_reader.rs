@@ -40,16 +40,15 @@ pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
 
     // Keep reading the replay file and sending packets to the analyzer
     let mut temp_replay = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
-    const BUFFER_SIZE: usize = 256;
+    const BUFFER_SIZE: usize = 25600;
     let mut buffer = [0; BUFFER_SIZE];
     let mut offset = 0;
     loop {
-        let bytes_to_read = BUFFER_SIZE - offset;
         temp_replay
-            .read_exact(&mut buffer[offset..bytes_to_read])
+            .read_exact(&mut buffer[offset..BUFFER_SIZE])
             .map_err(|_| ErrorKind::IncorrectTempReplayFileRead)?;
 
-        let bytes_read = bytes_to_read - offset;
+        let bytes_read = BUFFER_SIZE - offset;
         if bytes_read == 0 {
             continue;
         }
