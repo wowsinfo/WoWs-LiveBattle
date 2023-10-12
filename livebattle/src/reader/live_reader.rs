@@ -1,7 +1,7 @@
 use log::{debug, info};
 use std::{
     fs::{read_to_string, File},
-    io::Read,
+    io::{Read, Seek},
     path::PathBuf,
     thread::sleep,
     time::Duration,
@@ -20,6 +20,7 @@ pub fn parse_live_replay<P: AnalyzerBuilder>(
     error_delay: u64,
 ) {
     let replay_folder = PathBuf::from(replay_folder);
+    debug!("replay_folder: {:?}", replay_folder);
     loop {
         let result = parse_live_replay_loop(&replay_folder, processor, delay, error_delay);
         match result {
@@ -32,7 +33,7 @@ pub fn parse_live_replay<P: AnalyzerBuilder>(
                 ErrorKind::DatafileNotFound { version, path: _ } => {
                     info!("Your scripts is outdated, current version is {}, download at https://github.com/wowsinfo/data", version.to_path());
                     break;
-                },
+                }
                 _ => {
                     println!("Please log an issue at https://github.com/wowsinfo/WoWs-LiveBattle with the following error: {}", e);
                     break;
@@ -79,15 +80,41 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
     let mut analyzer_set = wows_replays::analyzer::AnalyzerAdapter::new(vec![processor]);
 
     // Keep reading the replay file and sending packets to the analyzer
-    let mut temp_replay = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
-    const BUFFER_SIZE: usize = 25600;
+    let mut temp_replay_file = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
+    const BUFFER_SIZE: usize = 20000;
     let mut buffer = [0; BUFFER_SIZE];
     let mut offset = 0;
     loop {
-        let result = temp_replay.read_exact(&mut buffer[offset..BUFFER_SIZE]);
+        let position = temp_replay_file
+            .seek(std::io::SeekFrom::Current(0))
+            .unwrap();
+
+        let result = temp_replay_file.read_exact(&mut buffer[offset..BUFFER_SIZE]);
         if result.is_err() {
             // ignore any errors and continue, we only want to send any valid packets is there are any
             info!("error: {:?}", result);
+            info!("offset: {}", offset);
+            // read the temp_replay file again and move to the last position
+            let temp_replay = replay_folder.join("temp.wowsreplay");
+            // get current localition from temp_replay_file
+            let mut length = temp_replay_file.metadata().unwrap().len();
+
+            // keep waiting until the file has more data
+            loop {
+                if length - position > BUFFER_SIZE as u64 {
+                    break;
+                }
+
+                sleep(Duration::from_millis(error_delay));
+                length = temp_replay_file.metadata().unwrap().len();
+                info!("length: {}, {}", length, length - position)
+            }
+
+            temp_replay_file = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
+            temp_replay_file
+                .seek(std::io::SeekFrom::Start(position))
+                .unwrap();
+
             sleep(Duration::from_millis(error_delay));
             continue;
         }
@@ -104,6 +131,8 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
 
         // shift remaining bytes to the beginning of the buffer
         buffer.copy_within(offset..BUFFER_SIZE, 0);
+        // the clear the rest of the buffer
+        buffer[BUFFER_SIZE - offset..BUFFER_SIZE].fill(0);
         if offset > 0 {
             offset = BUFFER_SIZE - offset;
         }
