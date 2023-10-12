@@ -1,14 +1,47 @@
+use log::{debug, info};
 use std::{
     fs::{read_to_string, File},
-    io::{Read, Seek},
+    io::Read,
+    path::PathBuf,
     thread::sleep,
     time::Duration,
 };
-use wows_replays::{parse_scripts, ErrorKind, ReplayMeta};
+use wows_replays::{analyzer::AnalyzerBuilder, parse_scripts, ErrorKind, ReplayMeta};
 
-pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
-    replay_folder: &std::path::PathBuf,
-    processor: P,
+/// Parse live replay from the replay folder
+/// - replay_folder: path to the replay folder
+/// - processor: analyzer to process the packets
+/// - delay: delay between reading packets
+/// - error_delay: delay between reading packets if there was an error
+pub fn parse_live_replay<P: AnalyzerBuilder>(
+    replay_folder: &PathBuf,
+    processor: &P,
+    delay: u64,
+    error_delay: u64,
+) {
+    loop {
+        let result = parse_live_replay_loop(replay_folder, processor, delay, error_delay);
+        match result {
+            Ok(_) => debug!("ok"),
+            Err(e) => match e {
+                ErrorKind::TempFilesNotFound => {
+                    info!("temp files not found, waiting for new replay");
+                    sleep(Duration::from_millis(5000));
+                },
+                _ => {
+                    println!("Please log an issue at https://github.com/wowsinfo/WoWs-LiveBattle with the following error: {}", e);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+fn parse_live_replay_loop<P: AnalyzerBuilder>(
+    replay_folder: &PathBuf,
+    processor: &P,
+    delay: u64,
+    error_delay: u64,
 ) -> Result<(), wows_replays::ErrorKind> {
     // find temp.wowsreplay and tempArenaInfo.json
     let temp_replay = replay_folder.join("temp.wowsreplay");
@@ -31,7 +64,9 @@ pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
     let specs = parse_scripts(&datafiles)?;
 
     let version_parts: Vec<_> = meta.clientVersionFromExe.split(",").collect();
-    assert!(version_parts.len() == 4);
+    if version_parts.len() != 4 {
+        return Err(ErrorKind::InvalidArenaJson);
+    }
 
     // Setup parser and processor
     let processor = processor.build(&meta);
@@ -44,9 +79,13 @@ pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
     let mut buffer = [0; BUFFER_SIZE];
     let mut offset = 0;
     loop {
-        temp_replay
-            .read_exact(&mut buffer[offset..BUFFER_SIZE])
-            .map_err(|_| ErrorKind::IncorrectTempReplayFileRead)?;
+        let result = temp_replay.read_exact(&mut buffer[offset..BUFFER_SIZE]);
+        if result.is_err() {
+            // ignore any errors and continue, we only want to send any valid packets is there are any
+            info!("error: {:?}", result);
+            sleep(Duration::from_millis(error_delay));
+            continue;
+        }
 
         let bytes_read = BUFFER_SIZE - offset;
         if bytes_read == 0 {
@@ -65,6 +104,7 @@ pub fn parse_live_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
         }
 
         // short delay
-        sleep(Duration::from_millis(200));
+        sleep(Duration::from_millis(delay));
+        debug!("offset: {}", offset)
     }
 }
