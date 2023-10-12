@@ -6,9 +6,6 @@ pub fn parse_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
 ) -> Result<(), wows_replays::ErrorKind> {
     let replay_file = ReplayFile::from_file(replay)?;
 
-    //let mut file = std::fs::File::create("foo.bin").unwrap();
-    //file.write_all(&replay_file.packet_data).unwrap();
-
     let datafiles = wows_replays::version::Datafiles::new(
         std::path::PathBuf::from("versions"),
         wows_replays::version::Version::from_client_exe(&replay_file.meta.clientVersionFromExe),

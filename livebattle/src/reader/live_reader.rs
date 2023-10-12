@@ -14,25 +14,30 @@ use wows_replays::{analyzer::AnalyzerBuilder, parse_scripts, ErrorKind, ReplayMe
 /// - delay: delay between reading packets
 /// - error_delay: delay between reading packets if there was an error
 pub fn parse_live_replay<P: AnalyzerBuilder>(
-    replay_folder: &PathBuf,
+    replay_folder: &str,
     processor: &P,
     delay: u64,
     error_delay: u64,
 ) {
+    let replay_folder = PathBuf::from(replay_folder);
     loop {
-        let result = parse_live_replay_loop(replay_folder, processor, delay, error_delay);
+        let result = parse_live_replay_loop(&replay_folder, processor, delay, error_delay);
         match result {
             Ok(_) => debug!("ok"),
             Err(e) => match e {
                 ErrorKind::TempFilesNotFound => {
-                    info!("temp files not found, waiting for new replay");
+                    info!("waiting for new replay... stop manually with Ctrl + C...");
                     sleep(Duration::from_millis(5000));
+                }
+                ErrorKind::DatafileNotFound { version, path: _ } => {
+                    info!("Your scripts is outdated, current version is {}, download at https://github.com/wowsinfo/data", version.to_path());
+                    break;
                 },
                 _ => {
                     println!("Please log an issue at https://github.com/wowsinfo/WoWs-LiveBattle with the following error: {}", e);
                     break;
                 }
-            }
+            },
         }
     }
 }
