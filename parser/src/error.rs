@@ -48,7 +48,7 @@ pub enum ErrorKind {
         entity_type: String,
         payload: Vec<u8>,
     },
-    #[error("Data file not found")]
+    #[error("scripts folder is not found")]
     DatafileNotFound {
         version: crate::version::Version,
         path: String,

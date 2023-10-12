@@ -1,7 +1,7 @@
-use std::{collections::HashMap, net::TcpListener, thread::spawn};
+use std::{collections::HashMap, net::TcpListener};
 
 use tungstenite::{accept, WebSocket};
-use wows_replays::analyzer::Analyzer;
+use wows_replays::{analyzer::Analyzer, packet2::Packet};
 
 pub struct WebsocketServer {
     pub address: String,
@@ -23,11 +23,13 @@ impl WebsocketServer {
     pub fn start(&mut self) {
         self.server = TcpListener::bind(self.address.clone()).ok();
         if let Some(server) = &self.server {
-            for stream in server.incoming() {
-                let websocket = accept(stream.unwrap()).unwrap();
-                self.connected_clients
-                    .insert(self.next_client_id, websocket);
-                self.next_client_id += 1;
+            loop {
+                for stream in server.incoming() {
+                    let websocket = accept(stream.unwrap()).unwrap();
+                    self.connected_clients
+                        .insert(self.next_client_id, websocket);
+                    self.next_client_id += 1;
+                }
             }
         }
     }
@@ -41,7 +43,7 @@ impl WebsocketServer {
 }
 
 impl Analyzer for WebsocketServer {
-    fn process(&mut self, packet: &wows_replays::packet2::Packet<'_, '_>) {
+    fn process(&mut self, packet: &Packet<'_, '_>) {
         // send this packet to any connected clients
         let packet_string = serde_json::to_string(&packet).unwrap();
         let mut closed_sockets = Vec::new();
