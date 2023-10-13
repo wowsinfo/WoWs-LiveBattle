@@ -4,7 +4,7 @@ use wows_live_battle::{
 };
 
 fn main() {
-    setup_logger("debug", "off");
+    setup_logger("info", "off");
     println!("WoWs LiveBattle Server");
 
     let input = r"C:\Games\World_of_Warships\replays\";

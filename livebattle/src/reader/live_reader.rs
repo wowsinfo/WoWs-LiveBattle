@@ -93,7 +93,6 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
         if result.is_err() {
             // ignore any errors and continue, we only want to send any valid packets is there are any
             info!("error: {:?}", result);
-            info!("offset: {}", offset);
             // read the temp_replay file again and move to the last position
             let temp_replay = replay_folder.join("temp.wowsreplay");
             // get current localition from temp_replay_file
@@ -107,6 +106,10 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
 
                 sleep(Duration::from_millis(error_delay));
                 length = temp_replay_file.metadata().unwrap().len();
+                if length < position {
+                    // the replay file has been reset
+                    return Err(ErrorKind::TempFilesNotFound);
+                }
                 info!("length: {}, {}", length, length - position)
             }
 
@@ -125,15 +128,22 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
         }
 
         offset = p.parse_live_packets::<wows_replays::analyzer::AnalyzerAdapter>(
-            &buffer[..bytes_read],
+            &buffer[..],
             &mut analyzer_set,
         );
+        debug!("bytes_read: {}, valid_bytes: {}", bytes_read, offset);
 
-        // shift remaining bytes to the beginning of the buffer
-        buffer.copy_within(offset..BUFFER_SIZE, 0);
-        // the clear the rest of the buffer
-        buffer[BUFFER_SIZE - offset..BUFFER_SIZE].fill(0);
-        if offset > 0 {
+        // no valid packets anymore, copy the rest of the buffer to the beginning
+        if offset == 0 {
+            // this should never happen
+            buffer.copy_within(BUFFER_SIZE - bytes_read..BUFFER_SIZE, 0);
+            buffer[BUFFER_SIZE - offset..BUFFER_SIZE].fill(0);
+            offset = bytes_read;
+        } else {
+            // shift remaining bytes to the beginning of the buffer
+            buffer.copy_within(offset..BUFFER_SIZE, 0);
+            // the clear the rest of the buffer
+            buffer[BUFFER_SIZE - offset..BUFFER_SIZE].fill(0);
             offset = BUFFER_SIZE - offset;
         }
 
