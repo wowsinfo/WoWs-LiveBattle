@@ -30,6 +30,8 @@ impl WebsocketServer {
                 match events.poll_event() {
                     Event::Connect(client_id, responder) => {
                         debug!("A new client is connected with id {}", client_id);
+                        let welcome = format!("{{\"type\": \"welcome\", \"id\": {}}}", client_id);
+                        responder.send(simple_websockets::Message::Text(welcome));
                         client_sender.send((client_id, Some(responder))).unwrap();
                     }
                     Event::Disconnect(client_id) => {

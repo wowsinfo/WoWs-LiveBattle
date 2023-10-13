@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::{fs::File, sync::mpsc::Sender};
 
 use wows_replays::{
     analyzer::{
@@ -12,13 +12,28 @@ use wows_replays::{
 pub struct PacketSender {
     version: Version,
     packet_sender: Sender<String>,
+    output: Option<Box<dyn std::io::Write>>,
 }
 
 impl PacketSender {
-    pub fn new(version: Version, packet_sender: Sender<String>) -> Self {
-        Self {
-            version,
-            packet_sender,
+    pub fn new(
+        version: Version,
+        packet_sender: Sender<String>,
+        output_file: Option<&str>,
+    ) -> Self {
+        if let Some(output_file) = output_file {
+            let output = File::create(output_file).unwrap();
+            Self {
+                version,
+                packet_sender,
+                output: Some(Box::new(output)),
+            }
+        } else {
+            Self {
+                version,
+                packet_sender,
+                output: None,
+            }
         }
     }
 }
@@ -36,6 +51,9 @@ impl Analyzer for PacketSender {
             }
             _ => {
                 let encoded = serde_json::to_string(&decoded).unwrap();
+                if let Some(output) = self.output.as_mut() {
+                    writeln!(output, "{}", encoded.clone()).unwrap();
+                }
                 self.packet_sender.send(encoded).unwrap();
             }
         }

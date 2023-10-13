@@ -17,6 +17,7 @@ async def hello():
             message = await websocket.recv()
             # decode from json
             message = json.loads(message)
+            print("Received message: " + str(message))
             if "payload" in message:
                 payload = message["payload"]
                 if "OnArenaStateReceived" in payload:
@@ -25,7 +26,7 @@ async def hello():
                     battle_info.clear()
                     players_dict.clear()
                     print("New battle started!")
-
+                    print("Payload: " + str(payload))
                     players = payload["OnArenaStateReceived"]["players"]
                     print("Players: " + str(players))
                     for player in players:

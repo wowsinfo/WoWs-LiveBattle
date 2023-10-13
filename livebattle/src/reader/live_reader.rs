@@ -86,7 +86,7 @@ fn parse_live_replay_loop(
     }
 
     // Setup parser and processor
-    let processor = PacketSender::new(version, sender.clone());
+    let processor = PacketSender::new(version, sender.clone(), Some("live.json"));
     let processor = Box::from(processor) as Box<dyn Analyzer>;
     let mut p = wows_replays::packet2::Parser::new(&specs);
     let mut analyzer_set = wows_replays::analyzer::AnalyzerAdapter::new(vec![processor]);
