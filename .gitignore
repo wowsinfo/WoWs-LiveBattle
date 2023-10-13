@@ -1,6 +1,7 @@
 .vscode/
 target/
 *.json
+*.txt
 
 # python
 .env/

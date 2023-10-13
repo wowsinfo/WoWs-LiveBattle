@@ -9,6 +9,7 @@ from battle_info import BattleInfo
 async def hello():
     players_dict = {}
     battle_info = {}
+    battle_number = 0
 
     async with websockets.connect("ws://127.0.0.1:8615") as websocket:
         await websocket.send("Hello world!")
@@ -17,12 +18,15 @@ async def hello():
             message = await websocket.recv()
             # decode from json
             message = json.loads(message)
-            print("Received message: " + str(message))
             if "payload" in message:
                 payload = message["payload"]
                 if "OnArenaStateReceived" in payload:
                     # reset previous data
                     print(battle_info)
+                    with open("battle_{}.txt".format(battle_number), "w") as f:
+                        f.write(str(battle_info))
+                    battle_number += 1
+
                     battle_info.clear()
                     players_dict.clear()
                     print("New battle started!")
