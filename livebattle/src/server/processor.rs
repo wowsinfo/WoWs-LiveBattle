@@ -13,6 +13,7 @@ pub struct PacketSender {
     version: Version,
     packet_sender: Sender<String>,
     output: Option<Box<dyn std::io::Write>>,
+    packets: Vec<String>,
 }
 
 impl PacketSender {
@@ -27,12 +28,14 @@ impl PacketSender {
                 version,
                 packet_sender,
                 output: Some(Box::new(output)),
+                packets: Vec::new(),
             }
         } else {
             Self {
                 version,
                 packet_sender,
                 output: None,
+                packets: Vec::new(),
             }
         }
     }
@@ -54,7 +57,16 @@ impl Analyzer for PacketSender {
                 if let Some(output) = self.output.as_mut() {
                     writeln!(output, "{}", encoded.clone()).unwrap();
                 }
-                self.packet_sender.send(encoded).unwrap();
+
+                if self.packets.len() > 10 {
+                    // send on a bundle
+                    let packet_array = self.packets.join(",");
+                    let packet_array_json = format!("[{}]", packet_array);
+                    self.packet_sender.send(packet_array_json).unwrap();
+                    self.packets.clear();
+                } else {
+                    self.packets.push(encoded);
+                }
             }
         }
     }

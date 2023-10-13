@@ -236,7 +236,11 @@ impl<'argtype> Parser<'argtype> {
         let (i, payload_length) = le_u32(i)?;
         let (i, payload) = take(payload_length)(i)?;
 
-        let entity_type = self.entities.get(&entity_id).unwrap().entity_type;
+        let entity_type = self.entities.get(&entity_id);
+        if entity_type.is_none() {
+            return Ok((i, PacketType::Unknown(&[0])));
+        }
+        let entity_type = entity_type.unwrap().entity_type;
         let spec = &self.specs[entity_type as usize - 1].properties[prop_id as usize];
 
         let (_, pval) = spec.prop_type.parse_value(payload).unwrap();
@@ -261,8 +265,11 @@ impl<'argtype> Parser<'argtype> {
         let (i, payload) = take(payload_length)(i)?;
         assert!(i.len() == 0);
 
-        let entity_type = self.entities.get(&entity_id).unwrap().entity_type;
-
+        let entity_type = self.entities.get(&entity_id);
+        if entity_type.is_none() {
+            return Ok((i, PacketType::Unknown(&[0])));
+        }
+        let entity_type = entity_type.unwrap().entity_type;
         let spec = &self.specs[entity_type as usize - 1].client_methods[method_id as usize];
 
         let mut i = payload;
@@ -306,7 +313,11 @@ impl<'argtype> Parser<'argtype> {
         let payload = i;
         assert!(payload_size as usize == payload.len());
 
-        let entity = self.entities.get_mut(&entity_id).unwrap();
+        let entity = self.entities.get_mut(&entity_id);
+        if entity.is_none() {
+            return Ok((i, PacketType::Unknown(&[0])));
+        }
+        let entity = entity.unwrap();
         let entity_type = entity.entity_type;
 
         let spec = &self.specs[entity_type as usize - 1];
@@ -465,7 +476,13 @@ impl<'argtype> Parser<'argtype> {
         let (i, entity_id) = le_u32(i)?;
         let (i, entity_type) = le_u16(i)?;
         let (i, state) = take(i.len())(i)?;
-        let spec = &self.specs[entity_type as usize - 1];
+        
+        let spec = &self.specs.get(entity_type as usize - 1);
+        if spec.is_none() {
+            return Ok((i, PacketType::Unknown(&[0])))
+        }
+
+        let spec = spec.unwrap();
         self.entities.insert(
             entity_id,
             Entity {
