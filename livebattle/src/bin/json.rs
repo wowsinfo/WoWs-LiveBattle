@@ -1,12 +1,15 @@
-use wows_live_battle::{reader::live_reader::parse_live_replay, setup_logger};
+use wows_live_battle::{parser::replay_parser::parse_replay, setup_logger};
 use wows_replays::analyzer::decoder::DecoderBuilder;
 
 fn main() {
     setup_logger("info", "off");
     println!("WoWs LiveBattle JSON");
-
-    let input: &str = r"C:\Games\World_of_Warships\replays\";
+    // input is the first argument
+    let input = std::env::args().nth(1).expect("replay file path is not provided");
     let json_builder = DecoderBuilder::new(false, true, Some("live.json"));
 
-    parse_live_replay(input, &json_builder, 50, 1000);
+    match parse_replay(&input, &json_builder) {
+        Ok(_) => println!("ok"),
+        Err(e) => println!("error: {}", e),
+    }
 }

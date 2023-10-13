@@ -1,10 +1,12 @@
+use std::path::PathBuf;
+
 use wows_replays::{ReplayFile, parse_scripts};
 
 pub fn parse_replay<P: wows_replays::analyzer::AnalyzerBuilder>(
-    replay: &std::path::PathBuf,
-    processor: P,
+    replay: &str,
+    processor: &P,
 ) -> Result<(), wows_replays::ErrorKind> {
-    let replay_file = ReplayFile::from_file(replay)?;
+    let replay_file = ReplayFile::from_file(&PathBuf::from(replay))?;
 
     let datafiles = wows_replays::version::Datafiles::new(
         std::path::PathBuf::from("versions"),
