@@ -103,14 +103,20 @@ fn parse_live_replay_loop(
 
         let result = temp_replay_file.read_exact(&mut buffer[offset..BUFFER_SIZE]);
         if result.is_err() {
-            // ignore any errors and continue, we only want to send any valid packets is there are any
-            info!("error: {:?}", result);
+            if result.err().unwrap().kind() != std::io::ErrorKind::UnexpectedEof {
+                return Err(ErrorKind::IncorrectTempReplayFileRead);
+            }
+
+            info!("reach end of file, waiting for new data...");
             // read the temp_replay file again and move to the last position
             let temp_replay = replay_folder.join("temp.wowsreplay");
             // get current localition from temp_replay_file
             let mut length = temp_replay_file.metadata().unwrap().len();
+            // the anrea file is gone, and the replay is reset
+            if length == 0 {
+                return Err(ErrorKind::TempFilesNotFound);
+            }
 
-            // keep waiting until the file has more data
             loop {
                 if length - position > BUFFER_SIZE as u64 {
                     break;
@@ -118,11 +124,10 @@ fn parse_live_replay_loop(
 
                 sleep(Duration::from_millis(error_delay));
                 length = temp_replay_file.metadata().unwrap().len();
+                // if meta_file is gone, reset
                 if length < position {
-                    // the replay file has been reset
                     return Err(ErrorKind::TempFilesNotFound);
                 }
-                info!("length: {}, {}", length, length - position)
             }
 
             temp_replay_file = File::open(temp_replay).map_err(|_| ErrorKind::TempFilesNotFound)?;
