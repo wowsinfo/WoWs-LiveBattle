@@ -3,26 +3,39 @@ use std::{
     fs::{read_to_string, File},
     io::{Read, Seek},
     path::PathBuf,
+    sync::mpsc::Sender,
     thread::sleep,
     time::Duration,
 };
-use wows_replays::{analyzer::AnalyzerBuilder, parse_scripts, ErrorKind, ReplayMeta};
+use wows_replays::{
+    analyzer::Analyzer,
+    parse_scripts,
+    version::{Datafiles, Version},
+    ErrorKind, ReplayMeta,
+};
 
-/// Parse live replay from the replay folder
+use crate::server::websocket_server::{PacketSender, WebsocketServer};
+
+/// Start the live battle server, and keep reading the replay file and sending packets to the analyzer
+/// - ip_address: ip address to start the server
 /// - replay_folder: path to the replay folder
-/// - processor: analyzer to process the packets
 /// - delay: delay between reading packets
 /// - error_delay: delay between reading packets if there was an error
-pub fn parse_live_replay<P: AnalyzerBuilder>(
+pub fn start_live_battle_server(
+    ip_address: &str,
     replay_folder: &str,
-    processor: &P,
     delay: u64,
     error_delay: u64,
 ) {
+    // start the server and pass down the channel
+    let full_address = format!("{}:8615", ip_address);
+    let server = WebsocketServer::new(full_address);
+    let sender = server.start();
+
     let replay_folder = PathBuf::from(replay_folder);
     debug!("replay_folder: {:?}", replay_folder);
     loop {
-        let result = parse_live_replay_loop(&replay_folder, processor, delay, error_delay);
+        let result = parse_live_replay_loop(&replay_folder, delay, error_delay, &sender);
         match result {
             Ok(_) => debug!("ok"),
             Err(e) => match e {
@@ -43,11 +56,11 @@ pub fn parse_live_replay<P: AnalyzerBuilder>(
     }
 }
 
-fn parse_live_replay_loop<P: AnalyzerBuilder>(
+fn parse_live_replay_loop(
     replay_folder: &PathBuf,
-    processor: &P,
     delay: u64,
     error_delay: u64,
+    sender: &Sender<String>,
 ) -> Result<(), wows_replays::ErrorKind> {
     // find temp.wowsreplay and tempArenaInfo.json
     let temp_replay = replay_folder.join("temp.wowsreplay");
@@ -63,10 +76,8 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
     let meta =
         serde_json::from_str::<ReplayMeta>(&meta).map_err(|_| ErrorKind::InvalidArenaJson)?;
 
-    let datafiles = wows_replays::version::Datafiles::new(
-        std::path::PathBuf::from("versions"),
-        wows_replays::version::Version::from_client_exe(&meta.clientVersionFromExe),
-    )?;
+    let version = Version::from_client_exe(&meta.clientVersionFromExe);
+    let datafiles = Datafiles::new(PathBuf::from("versions"), version)?;
     let specs = parse_scripts(&datafiles)?;
 
     let version_parts: Vec<_> = meta.clientVersionFromExe.split(",").collect();
@@ -75,7 +86,8 @@ fn parse_live_replay_loop<P: AnalyzerBuilder>(
     }
 
     // Setup parser and processor
-    let processor = processor.build(&meta);
+    let processor = PacketSender::new(version, sender.clone());
+    let processor = Box::from(processor) as Box<dyn Analyzer>;
     let mut p = wows_replays::packet2::Parser::new(&specs);
     let mut analyzer_set = wows_replays::analyzer::AnalyzerAdapter::new(vec![processor]);
 

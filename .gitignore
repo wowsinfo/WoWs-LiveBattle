@@ -1,4 +1,7 @@
 .vscode/
 target/
 *.json
+
+# python
 .env/
+__pycache__/
